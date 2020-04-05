@@ -13,3 +13,7 @@ Usage:
 4. Click "preview" to perform your result.
 5. Export to save your ".ass" subtitle.
 have fun!
+******
+V2.0
+- you can now put an image (bg.jpg) in the directory where the program start to make it as a background of render video (render button).
+- fix some bugs: crash on larger file, not detect some audio.....
