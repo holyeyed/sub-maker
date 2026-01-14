@@ -1,0 +1,121 @@
+<title>Chuyển đổi ass effect to autolua</title>
+<meta charset="utf-8" />
+<div style="font-size: 32pt;color:red;">Chuyển Đổi Ass Effect To Autolua For Aegisub</div>
+<div id="part">
+<input style="color: green; font-size: 22pt; width: 80%;" id="name" value="Effect 000W ... "  /><br>
+<input style="color: green; font-size: 22pt; width: 80%;" id="des" value="kiểu Word" /><br>
+<input style="color: green; font-size: 22pt; width: 80%;" id="author" value="holyeyed" /><br>
+<div style="font-size: 32pt;color:purple;">Ass file code:</div>
+<textarea id="code" style="width: 80%; height: 50%;"></textarea><br>
+<input style="color: green; font-size: 32pt;" id="butt" type="button" value="toCode" onclick="change()" />
+</div>
+<script>
+var mau="local tr = aegisub.gettext\nscript_name = tr\"$name\"\nscript_description = tr\"$des\"\nscript_author = \"$author\"\nscript_version = \"1.0\"\n\nfunction gtext(l)\nif l.class==\"info\" then\n	return l.key..\" \"..l.value\nend\nif l.class==\"style\" then\n	return l.name..\" \"..l.raw\nend\nif l.class==\"dialogue\" then\n	return l.text\nend\n	return \"unknow\"\nend\n\nfunction add_effect(subs, sel)\n	--xres, yres, ar, artype = aegisub.video_size()\n\n	cstyle=$style\n	cdiag=$diag\n	local pinfo=0\n	local pstyle=0\n	local pdiag=0\n	local sl=nil\n	local dl=nil\n	--tìm vị trí điểm cần thêm\n	for i=1,#subs do\n	ln=subs[i]\n	if ln.class==\"info\" then\n	if pinfo==0 then pinfo = i end\n	elseif ln.class==\"style\" then\n	if pstyle==0 then pstyle = i sl=ln end\n	elseif ln.class==\"dialogue\" then\n	if pdiag==0 then pdiag = i dl=ln end\n	else\n	end\n	end\n	--aegisub.debug.out(pinfo..\" \"..pstyle..\" \"..pdiag)\nlocal sname={}\n	local apoint=pdiag\n	--thêm bảng style\n	for i=1,#cstyle do\n	sl.name=cstyle[i][1]\nsname[#sname+1]=sl.name\n	sl.fontname=cstyle[i][2]\n	sl.fontsize=cstyle[i][3]\n	sl.color1=cstyle[i][4]\n	sl.color2=cstyle[i][5]\n	sl.color3=cstyle[i][6]\n	sl.color4=cstyle[i][7]\n	sl.bold=cstyle[i][8]\n	sl.italic=cstyle[i][9]\n	sl.underline=cstyle[i][10]\n	sl.strikeout=cstyle[i][11]\n	sl.scale_x=cstyle[i][12]\n	sl.scale_y=cstyle[i][13]\n	sl.spacing=cstyle[i][14]\n	sl.angle=cstyle[i][15]\n	sl.borderstyle=cstyle[i][16]\n	sl.outline=cstyle[i][17]\n	sl.shadow=cstyle[i][18]\n	sl.align=cstyle[i][19]\n	sl.margin_l=cstyle[i][20]\n	sl.margin_r=cstyle[i][21]\n	sl.margin_v=cstyle[i][22]\n	sl.encoding=cstyle[i][23]\n	subs.insert(pdiag,sl)\n	pdiag=pdiag+1\n	end\n	--thêm bảng code\n	for i=1,#cdiag do\n	dl.comment=true\n	dl.layer=cdiag[i][1]\n	dl.style=cdiag[i][4]\n	dl.effect=cdiag[i][9]\n	dl.text=cdiag[i][10]\n	subs.insert(pdiag,dl)\n	pdiag=pdiag+1\n	end\n	--xóa style line\n	for i=1,apoint-pstyle do\n	for j=1,#sname do\n	if subs[apoint-i].name == sname[j] then\n	subs.delete(apoint-i)\n	end\n	end\n	end\n	--subs.deleterange(pstyle,apoint-1)\nend\n\naegisub.register_macro(script_name, script_description, add_effect)\n\n";
+function change(){
+var text=document.getElementById("code").value;
+var al=text.split("\n");
+var stb="{";
+var dtb="{";
+for(var i=0;i<al.length;i++){
+if(al[i].startsWith("Style")){
+//console.log(i+":"+al[i]);
+var ap=al[i].split(",");
+var rs="{";
+for(var j=0;j<ap.length;j++){
+x=ap[j];
+switch(j){
+case 0:
+x=x.substring(7);
+x="\""+x+"\"";
+break;
+case 1:
+case 3:
+case 4:
+case 5:
+case 6:
+x="\""+x+"\"";
+break;
+case 7:
+case 8:
+case 9:
+case 10:
+if (x=="0"){x="false";}else{x="true";}
+break;
+default:
+}
+rs+=x+",";}
+rs=rs.substring(0,rs.length-1)+"}";
+console.log(rs);
+stb+=rs+",";
+}
+
+
+if(al[i].startsWith("Comment")){
+//console.log(i+":"+al[i]);
+var ap=al[i].split(",");
+if(!ap[8].startsWith("code") && !ap[8].startsWith("template")){continue;}
+var rs="{";
+var txt="";
+for(var j=0;j<ap.length;j++){
+x=ap[j];
+switch(j){
+case 0:
+x=x.substring(9);
+rs+=x+",";
+break;
+case 1:
+case 2:
+case 3:
+case 4:
+case 8:
+x="\""+x+"\"";
+rs+=x+",";
+break;
+case 5:
+case 6:
+case 7:
+rs+=x+",";
+break;
+default:
+txt+=x+",";
+break;
+}
+}
+txt=txt.replaceAll("\\","\\\\").replaceAll("\"","\\\"");
+rs+="\""+txt.substring(0,txt.length-1)+"\"}";
+//console.log(rs);
+//console.log(txt);
+dtb+=rs+",";
+}
+}
+stb=stb.substring(0,stb.length-1)+"}";
+dtb=dtb.substring(0,dtb.length-1)+"}";
+//console.log(stb);
+//console.log(dtb);
+mau=mau.replace("$name",document.getElementById("name").value);
+mau=mau.replace("$des",document.getElementById("des").value);
+mau=mau.replace("$author",document.getElementById("author").value);
+mau=mau.replace("$style",stb);
+mau=mau.replace("$diag",dtb);
+//document.getElementById("code").value=mau;
+download(document.getElementById("name").value+".lua",mau);
+document.getElementById("code").style.display="none";
+document.getElementById("butt").style.display="none";
+}
+
+function download(filename, text) {
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+  element.setAttribute('download', filename);
+  element.style.display = "";
+  element.innerHTML="⬇️Download code";
+  element.style.color="red";
+  element.style.fontSize="32pt";
+  //document.body.appendChild(element);
+  //element.click();
+  //document.body.removeChild(element);
+  document.getElementById("part").insertBefore(element,document.getElementById("butt"));
+   element = document.createElement('br');
+  document.getElementById("part").insertBefore(element,document.getElementById("butt"));
+}
+</script>
