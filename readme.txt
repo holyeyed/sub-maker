@@ -11,3 +11,4 @@ Usage:
 6. Export to save your ".ass" subtitle.
 have fun!
 ******
+![preview](2026-01-12 23_18_03-Settings.png)
